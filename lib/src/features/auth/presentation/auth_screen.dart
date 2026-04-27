@@ -49,18 +49,19 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
         );
         await Supabase.instance.client.auth.signOut();
+
+        // CRITIQUE : Toujours vérifier 'mounted' avant d'utiliser le context ou SnackBar
+        if (!mounted) return;
+
         _showSnackBar("Compte créé avec succès ! Connectez-vous.");
-        if (mounted) {
-          setState(() {
-            _isLoginMode = true;
-            _passwordController.clear();
-          });
-        }
+        setState(() {
+          _isLoginMode = true;
+          _passwordController.clear();
+        });
       }
     } on AuthException catch (e) {
+      if (!mounted) return; // Sécurité supplémentaire
       _showSnackBar(e.message, isError: true);
-    } catch (e) {
-      _showSnackBar("Une erreur inattendue est survenue.", isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -90,18 +91,28 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.event_note_rounded, size: 60, color: Colors.indigo),
+                child: const Icon(
+                  Icons.event_note_rounded,
+                  size: 60,
+                  color: Colors.indigo,
+                ),
               ),
               const SizedBox(height: 30),
-              
+
               // Titre et Sous-titre
               Text(
                 _isLoginMode ? "Bon retour !" : "Bienvenue",
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1C1E),
+                ),
               ),
               const SizedBox(height: 8),
               Text(
-                _isLoginMode ? "Connectez-vous pour gérer vos événements" : "Créez un compte pour commencer",
+                _isLoginMode
+                    ? "Connectez-vous pour gérer vos événements"
+                    : "Créez un compte pour commencer",
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
               ),
@@ -129,7 +140,10 @@ class _AuthScreenState extends State<AuthScreen> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: "Adresse Email",
-                        prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20),
+                        prefixIcon: const Icon(
+                          Icons.alternate_email_rounded,
+                          size: 20,
+                        ),
                         filled: true,
                         fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
@@ -139,14 +153,17 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Champ Mot de passe
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: "Mot de passe",
-                        prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                        prefixIcon: const Icon(
+                          Icons.lock_outline_rounded,
+                          size: 20,
+                        ),
                         filled: true,
                         fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
@@ -161,31 +178,38 @@ class _AuthScreenState extends State<AuthScreen> {
                     _isLoading
                         ? const CircularProgressIndicator()
                         : ElevatedButton(
-                            onPressed: _submit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.indigo,
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size(double.infinity, 56),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            child: Text(
-                              _isLoginMode ? "Se connecter" : "Créer mon compte",
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.indigo,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 56),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
+                          child: Text(
+                            _isLoginMode ? "Se connecter" : "Créer mon compte",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Bouton de Switch
               TextButton(
                 onPressed: () => setState(() => _isLoginMode = !_isLoginMode),
                 style: TextButton.styleFrom(foregroundColor: Colors.indigo),
                 child: Text(
-                  _isLoginMode ? "Nouveau ici ? Créer un compte" : "Déjà inscrit ? Connectez-vous",
+                  _isLoginMode
+                      ? "Nouveau ici ? Créer un compte"
+                      : "Déjà inscrit ? Connectez-vous",
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
