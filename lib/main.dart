@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import 'src/constants.dart';
+import 'src/features/events/presentation/event_details_page.dart';
 import 'src/features/events/presentation/event_list_screen.dart';
 import 'src/features/auth/presentation/auth_screen.dart';
 
@@ -40,6 +41,13 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/auth', builder: (context, state) => const AuthScreen()),
       GoRoute(path: '/', builder: (context, state) => const EventListScreen()),
+      GoRoute(
+        path: '/event/:eventId',
+        builder: (context, state) {
+          final eventId = state.pathParameters['eventId'] ?? '';
+          return EventDetailsPage(eventId: eventId);
+        },
+      ),
     ],
   );
 });

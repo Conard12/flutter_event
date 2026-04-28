@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'add_event_page.dart';
 import '../domain/event.dart';
 
@@ -95,7 +96,13 @@ class EventListScreen extends StatelessWidget {
               return SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final event = events[index];
-                  return _buildPremiumEventCard(event, primaryColor);
+                  return GestureDetector(
+                    onTap:
+                        () => context.push(
+                          '/event/${Uri.encodeComponent(event.id)}',
+                        ),
+                    child: _buildPremiumEventCard(event, primaryColor),
+                  );
                 }, childCount: events.length),
               );
             },
