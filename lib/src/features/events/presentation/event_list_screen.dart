@@ -268,7 +268,7 @@ class EventListScreen extends StatelessWidget {
                     Icon(Icons.location_on, size: 16, color: Colors.grey[400]),
                     const SizedBox(width: 4),
                     Text(
-                      "Cotonou",
+                      "Bénin",
                       style: TextStyle(color: Colors.grey[500], fontSize: 14),
                     ),
                   ],
