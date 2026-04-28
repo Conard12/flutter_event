@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,10 +12,12 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _fullNameController = TextEditingController(); // Nouveau champ
   bool _isLoading = false;
   bool _isLoginMode = true;
 
   void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: const TextStyle(fontSize: 14)),
@@ -29,8 +32,9 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _submit() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+    final fullName = _fullNameController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty || (!_isLoginMode && fullName.isEmpty)) {
       _showSnackBar("Veuillez remplir tous les champs.", isError: true);
       return;
     }
@@ -44,23 +48,26 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
         );
       } else {
+        // Inscription avec ajout du nom complet dans les metadata
         await Supabase.instance.client.auth.signUp(
           email: email,
           password: password,
+          data: {'full_name': fullName}, 
         );
+        
         await Supabase.instance.client.auth.signOut();
 
-        // CRITIQUE : Toujours vérifier 'mounted' avant d'utiliser le context ou SnackBar
         if (!mounted) return;
 
         _showSnackBar("Compte créé avec succès ! Connectez-vous.");
         setState(() {
           _isLoginMode = true;
           _passwordController.clear();
+          _fullNameController.clear();
         });
       }
     } on AuthException catch (e) {
-      if (!mounted) return; // Sécurité supplémentaire
+      if (!mounted) return;
       _showSnackBar(e.message, isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -68,16 +75,23 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _fullNameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE), // Gris très clair pour le fond
+      backgroundColor: const Color(0xFFF8F9FE),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo ou Icone Stylisée
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -85,7 +99,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.indigo.withValues(alpha: 0.1),
+                      color: Colors.indigo.withOpacity(0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -98,8 +112,6 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-
-              // Titre et Sous-titre
               Text(
                 _isLoginMode ? "Bon retour !" : "Bienvenue",
                 style: const TextStyle(
@@ -117,8 +129,6 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
               ),
               const SizedBox(height: 40),
-
-              // Formulaire
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -134,16 +144,28 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 child: Column(
                   children: [
-                    // Champ Email
+                    if (!_isLoginMode) ...[
+                      TextField(
+                        controller: _fullNameController,
+                        decoration: InputDecoration(
+                          labelText: "Nom Complet",
+                          prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                     TextField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: "Adresse Email",
-                        prefixIcon: const Icon(
-                          Icons.alternate_email_rounded,
-                          size: 20,
-                        ),
+                        prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20),
                         filled: true,
                         fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
@@ -153,17 +175,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    // Champ Mot de passe
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: "Mot de passe",
-                        prefixIcon: const Icon(
-                          Icons.lock_outline_rounded,
-                          size: 20,
-                        ),
+                        prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
                         filled: true,
                         fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
@@ -173,36 +190,28 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                     const SizedBox(height: 30),
-
-                    // Bouton Principal
-                    _isLoading
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton(
-                          onPressed: _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.indigo,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(double.infinity, 56),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: Text(
-                            _isLoginMode ? "Se connecter" : "Créer mon compte",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    if (_isLoading)
+                      const CircularProgressIndicator()
+                    else
+                      ElevatedButton(
+                        onPressed: _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
+                        child: Text(
+                          _isLoginMode ? "Se connecter" : "Créer mon compte",
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Bouton de Switch
               TextButton(
                 onPressed: () => setState(() => _isLoginMode = !_isLoginMode),
                 style: TextButton.styleFrom(foregroundColor: Colors.indigo),
