@@ -8,6 +8,9 @@ import 'src/features/events/presentation/event_details_page.dart';
 import 'src/features/events/presentation/event_list_screen.dart';
 import 'src/features/auth/presentation/auth_screen.dart';
 
+// ✅ IMPORTER TON THÈME
+import 'core/theme/app_theme.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -62,10 +65,8 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Event Sync App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
+      // ✅ APPLIQUER TON THÈME ICI
+      theme: AppTheme.lightTheme,
       routerConfig: router,
     );
   }
