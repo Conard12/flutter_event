@@ -1,6 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// ✅ IMPORTS DU DESIGN SYSTEM
+import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -21,7 +25,7 @@ class _AuthScreenState extends State<AuthScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: const TextStyle(fontSize: 14)),
-        backgroundColor: isError ? Colors.redAccent : Colors.indigo,
+        backgroundColor: isError ? AppTheme.errorColor : AppTheme.primaryColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -108,7 +112,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: const Icon(
                   Icons.event_note_rounded,
                   size: 60,
-                  color: Colors.indigo,
+                  color: AppTheme.primaryColor,
                 ),
               ),
               const SizedBox(height: 30),
@@ -145,76 +149,42 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   children: [
                     if (!_isLoginMode) ...[
-                      TextField(
+                      CustomTextField(
                         controller: _fullNameController,
-                        decoration: InputDecoration(
-                          labelText: "Nom Complet",
-                          prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
+                        label: "Nom Complet",
+                        hint: "Votre nom et prénom",
+                        prefixIcon: Icons.person_outline_rounded,
                       ),
                       const SizedBox(height: 20),
                     ],
-                    TextField(
+                    CustomTextField(
                       controller: _emailController,
+                      label: "Adresse Email",
+                      hint: "exemple@mail.com",
                       keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: "Adresse Email",
-                        prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20),
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
+                      prefixIcon: Icons.alternate_email_rounded,
                     ),
                     const SizedBox(height: 20),
-                    TextField(
+                    CustomTextField(
                       controller: _passwordController,
+                      label: "Mot de passe",
+                      hint: "••••••••",
                       obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: "Mot de passe",
-                        prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
+                      prefixIcon: Icons.lock_outline_rounded,
                     ),
                     const SizedBox(height: 30),
-                    if (_isLoading)
-                      const CircularProgressIndicator()
-                    else
-                      ElevatedButton(
-                        onPressed: _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: Text(
-                          _isLoginMode ? "Se connecter" : "Créer mon compte",
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                      ),
+                    CustomButton(
+                      label: _isLoginMode ? "Se connecter" : "Créer mon compte",
+                      onPressed: _submit,
+                      isLoading: _isLoading,
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () => setState(() => _isLoginMode = !_isLoginMode),
-                style: TextButton.styleFrom(foregroundColor: Colors.indigo),
+                style: TextButton.styleFrom(foregroundColor: AppTheme.primaryColor),
                 child: Text(
                   _isLoginMode
                       ? "Nouveau ici ? Créer un compte"
